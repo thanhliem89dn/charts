@@ -4,8 +4,8 @@
 
 image:
   registry: docker.io
-  repository: monotek/gcloud-mysql
-  tag: "8"
+  repository: thanhliem89dn/gcloud-mysql-dump
+  tag: latest
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
   ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images#
