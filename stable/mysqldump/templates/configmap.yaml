@@ -39,7 +39,7 @@ data:
     TIMESTAMP="$(date +%Y%m%d%H%M%S)"
 
     echo "test mysql connection"
-    if [ -z "$(mysql -h ${MYSQL_HOST} -P ${MYSQL_PORT} -u ${MYSQL_USERNAME} -B -N -e 'SHOW DATABASES;')" ]; then
+    if [ -z "$(mysql -h ${MYSQL_HOST} -P ${MYSQL_PORT} -u ${MYSQL_USERNAME} --password=${MYSQL_PWD} -B -N -e 'SHOW DATABASES;')" ]; then
       echo "mysql connection failed! exiting..."
       exit 1
     fi
@@ -57,13 +57,13 @@ data:
     MYSQL_DB="{{ .Values.mysql.db }}"
     echo "Backing up single db ${MYSQL_DB}"
     {{ if .Values.saveToDirectory }}mkdir -p "${BACKUP_DIR}"/"${MYSQL_DB}"{{ end }}
-    mysqldump ${MYSQL_OPTS} -h ${MYSQL_HOST} -P ${MYSQL_PORT} -u ${MYSQL_USERNAME} --databases ${MYSQL_DB} | gzip > ${BACKUP_DIR}/{{ if .Values.saveToDirectory }}${MYSQL_DB}/{{ end }}${TIMESTAMP}_${MYSQL_DB}.sql.gz
+    mysqldump ${MYSQL_OPTS} -h ${MYSQL_HOST} -P ${MYSQL_PORT} -u ${MYSQL_USERNAME} --password=${MYSQL_PWD} --databases ${MYSQL_DB} | gzip > ${BACKUP_DIR}/{{ if .Values.saveToDirectory }}${MYSQL_DB}/{{ end }}${TIMESTAMP}_${MYSQL_DB}.sql.gz
     rc=$?
     {{ else if and (.Values.allDatabases.enabled) (eq .Values.allDatabases.singleBackupFile false)}}
-    for MYSQL_DB in $(mysql -h "${MYSQL_HOST}" -P ${MYSQL_PORT} -u ${MYSQL_USERNAME} -B -N -e "SHOW DATABASES;"|egrep -v '^(information|performance)_schema$'); do
+    for MYSQL_DB in $(mysql -h "${MYSQL_HOST}" -P ${MYSQL_PORT} -u ${MYSQL_USERNAME} --password=${MYSQL_PWD} -B -N -e "SHOW DATABASES;"|egrep -v '^(information|performance)_schema$'); do
       echo "Backing up db ${MYSQL_DB}"
       {{ if .Values.saveToDirectory }}mkdir -p "${BACKUP_DIR}"/"${MYSQL_DB}"{{ end }}
-      mysqldump ${MYSQL_OPTS} -h ${MYSQL_HOST} -P ${MYSQL_PORT} -u ${MYSQL_USERNAME} --databases ${MYSQL_DB} | gzip > ${BACKUP_DIR}/{{ if .Values.saveToDirectory }}${MYSQL_DB}/{{ end }}${TIMESTAMP}_${MYSQL_DB}.sql.gz
+      mysqldump ${MYSQL_OPTS} -h ${MYSQL_HOST} -P ${MYSQL_PORT} -u ${MYSQL_USERNAME} --password=${MYSQL_PWD} --databases ${MYSQL_DB} | gzip > ${BACKUP_DIR}/{{ if .Values.saveToDirectory }}${MYSQL_DB}/{{ end }}${TIMESTAMP}_${MYSQL_DB}.sql.gz
       rc=$?
     done
 
@@ -71,7 +71,7 @@ data:
     echo "Backing up all databases"
     MYSQL_DB="alldatabases"
     {{ if .Values.saveToDirectory }}mkdir -p "${BACKUP_DIR}"/"${MYSQL_DB}"{{ end }}
-    mysqldump ${MYSQL_OPTS} -h ${MYSQL_HOST} -P ${MYSQL_PORT} -u ${MYSQL_USERNAME} --all-databases | gzip > ${BACKUP_DIR}/{{ if .Values.saveToDirectory }}${MYSQL_DB}/{{ end }}${TIMESTAMP}_${MYSQL_DB}.sql.gz
+    mysqldump ${MYSQL_OPTS} -h ${MYSQL_HOST} -P ${MYSQL_PORT} -u ${MYSQL_USERNAME} --password=${MYSQL_PWD} --all-databases | gzip > ${BACKUP_DIR}/{{ if .Values.saveToDirectory }}${MYSQL_DB}/{{ end }}${TIMESTAMP}_${MYSQL_DB}.sql.gz
     rc=$?
     {{- end -}}
 
@@ -106,7 +106,7 @@ data:
 
     {{- else  }}
     {{ if .Values.dumpAllToStdout }}
-    mysqldump ${MYSQL_OPTS} -h ${MYSQL_HOST} -P ${MYSQL_PORT} -u ${MYSQL_USERNAME} --all-databases
+    mysqldump ${MYSQL_OPTS} -h ${MYSQL_HOST} -P ${MYSQL_PORT} -u ${MYSQL_USERNAME} --password=${MYSQL_PWD} --all-databases
     rc=$?
     {{ end }}
     {{ end }}
